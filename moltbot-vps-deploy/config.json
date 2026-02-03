@@ -1,0 +1,93 @@
+{
+  "auth": {
+    "profiles": {
+      "github-copilot:github": {
+        "provider": "github-copilot",
+        "mode": "token"
+      },
+      "google-antigravity:default": {
+        "provider": "google-antigravity",
+        "mode": "oauth"
+      }
+    }
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "github-copilot/claude-sonnet-4"
+      },
+      "models": {
+        "github-copilot/claude-sonnet-4": {},
+        "github-copilot/claude-opus-4": {},
+        "github-copilot/gpt-4o": {},
+        "github-copilot/gpt-4o-mini": {},
+        "github-copilot/o1": {},
+        "github-copilot/o1-mini": {},
+        "google-antigravity/gemini-3-pro-preview": {},
+        "google-antigravity/gemini-2.5-flash-preview": {},
+        "google-antigravity/gemini-2.0-flash-thinking": {}
+      },
+      "workspace": "/home/node/workspace",
+      "compaction": {
+        "mode": "safeguard"
+      },
+      "maxConcurrent": 4,
+      "subagents": {
+        "maxConcurrent": 8
+      }
+    }
+  },
+  "messages": {
+    "ackReactionScope": "all"
+  },
+  "commands": {
+    "native": "auto",
+    "nativeSkills": "auto"
+  },
+  "channels": {
+    "discord": {
+      "enabled": true,
+      "groupPolicy": "open",
+      "dm": {
+        "policy": "open",
+        "allowFrom": [
+          "*"
+        ]
+      }
+    }
+  },
+  "gateway": {
+    "port": 18789,
+    "mode": "local",
+    "bind": "loopback",
+    "auth": {
+      "mode": "token"
+    },
+    "tailscale": {
+      "mode": "off",
+      "resetOnExit": false
+    }
+  },
+  "tools": {
+    "exec": {
+      "host": "sandbox",
+      "security": "full",
+      "ask": "off"
+    }
+  },
+  "skills": {
+    "install": {
+      "nodeManager": "npm"
+    }
+  },
+  "plugins": {
+    "entries": {
+      "discord": {
+        "enabled": true
+      },
+      "google-antigravity-auth": {
+        "enabled": true
+      }
+    }
+  }
+}

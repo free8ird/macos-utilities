@@ -1,0 +1,6 @@
+# Logs
+/tmp/deskflow-watchdog.log
+/tmp/deskflow-watchdog-error.log
+
+# macOS
+.DS_Store

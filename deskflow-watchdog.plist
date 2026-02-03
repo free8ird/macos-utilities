@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>local.deskflow.watchdog</string>
+    
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/sh</string>
+        <string>-c</string>
+        <string>
+        CRASH_COUNT_FILE="/tmp/deskflow-crash-count"
+        LAST_CHECK_FILE="/tmp/deskflow-last-check"
+        
+        # Initialize crash count file
+        echo "0" > "$CRASH_COUNT_FILE"
+        
+        while true; do
+            # Get current process state
+            PROCESS_STATE=$(ps aux | grep "[d]eskflow-core" | awk '{print $8}')
+            PID=$(pgrep -x "deskflow-core")
+            CURRENT_TIME=$(date +%s)
+            
+            # Log timestamp
+            echo "[$(date)] Checking Deskflow... State: $PROCESS_STATE PID: $PID" >> /tmp/deskflow-watchdog.log
+            
+            # Check if process is in bad state (Zombie, Uninterruptible sleep, or doesn't exist)
+            if [ -z "$PID" ] || [[ "$PROCESS_STATE" =~ [ZU] ]]; then
+                CRASH_COUNT=$(cat "$CRASH_COUNT_FILE")
+                CRASH_COUNT=$((CRASH_COUNT + 1))
+                echo "$CRASH_COUNT" > "$CRASH_COUNT_FILE"
+                
+                echo "[$(date)] ⚠️  Deskflow is DOWN or HUNG! (State: $PROCESS_STATE) - Restart #$CRASH_COUNT" >> /tmp/deskflow-watchdog.log
+                
+                # Force kill any existing processes
+                pkill -9 "deskflow-core" 2>/dev/null || true
+                pkill -9 "Deskflow" 2>/dev/null || true
+                sleep 2
+                
+                # Restart Deskflow
+                echo "[$(date)] 🔄 Restarting Deskflow..." >> /tmp/deskflow-watchdog.log
+                /usr/bin/open -a Deskflow
+                sleep 5
+                
+                # Verify restart
+                if pgrep -x "deskflow-core" > /dev/null; then
+                    echo "[$(date)] ✅ Deskflow restarted successfully" >> /tmp/deskflow-watchdog.log
+                else
+                    echo "[$(date)] ❌ Failed to restart Deskflow" >> /tmp/deskflow-watchdog.log
+                fi
+            else
+                # Process is running normally
+                echo "0" > "$CRASH_COUNT_FILE"
+            fi
+            
+            echo "$CURRENT_TIME" > "$LAST_CHECK_FILE"
+            sleep 10
+        done
+        </string>
+    </array>
+    
+    <key>RunAtLoad</key>
+    <true/>
+    
+    <key>KeepAlive</key>
+    <true/>
+    
+    <key>StandardOutPath</key>
+    <string>/tmp/deskflow-watchdog.log</string>
+    
+    <key>StandardErrorPath</key>
+    <string>/tmp/deskflow-watchdog-error.log</string>
+</dict>
+</plist>

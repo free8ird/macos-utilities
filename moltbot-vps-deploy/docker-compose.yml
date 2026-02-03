@@ -1,0 +1,55 @@
+services:
+  moltbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: moltbot
+    restart: unless-stopped
+    
+    ports:
+      - "127.0.0.1:18789:18789"
+    
+    volumes:
+      # Runtime state (persistent, writable)
+      - /home/moltbot/state:/home/node/.openclaw
+      - /home/moltbot/workspace:/home/node/workspace
+      
+      # SSH keys for git operations
+      - /home/moltbot/.ssh:/home/node/.ssh:ro
+      
+      # Docker socket for tools
+      - /var/run/docker.sock:/var/run/docker.sock
+    
+    environment:
+      - NODE_ENV=production
+      - HOME=/home/node
+      - ENV=prod
+      - OPENCLAW_GATEWAY_PORT=18789
+      - OPENCLAW_GATEWAY_BIND=loopback
+      
+      # dotenvx decryption key (ONLY secret needed in Dokploy)
+      - DOTENV_PRIVATE_KEY_PROD=${DOTENV_PRIVATE_KEY_PROD}
+      
+      # Optional: Debug mode
+      - DEBUG=${DEBUG:-false}
+    
+    healthcheck:
+      test: ["CMD", "openclaw", "agent", "--local", "--agent", "main", "--message", "health check"]
+      interval: 60s
+      timeout: 30s
+      retries: 3
+      start_period: 120s
+    
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+        reservations:
+          memory: 1G
+    
+    networks:
+      - moltbot-network
+
+networks:
+  moltbot-network:
+    driver: bridge

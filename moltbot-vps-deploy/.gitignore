@@ -1,0 +1,9 @@
+# Secrets (DO commit .env.prod if encrypted)
+.env.keys
+.env.local
+.env.dev
+
+# Local testing
+test/
+tmp/
+*.log
